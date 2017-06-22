@@ -7,9 +7,9 @@
 namespace orangedata;
 
 /**
- * Description of orangedata_client
+ * Example client API class for OrangeData project
  *
- * @author 
+ * @author patyrsa
  */
 class orangedata_client {
 
@@ -17,14 +17,24 @@ class orangedata_client {
     private $url;
     private $inn;
     private $debug_file;
+    private $debug = false;
 
+    /**
+     * 
+     * @param mixed $inn
+     * @param mixed $url
+     * @param string $sign_pkey  path to signing private key or his PEM body
+     * @param string $ca_cert   path to CA certificate
+     * @param string $client_cert   path to Client 2SSL Certificate
+     * @param string $client_cert_pass password for Client 2SSL Certificate
+     */
     public function __construct($inn, $url, $sign_pkey, $ca_cert, $client_cert, $client_cert_pass) {
-        $this->inn = $inn;
-        $this->url = $url;
-        $this->private_key_pem = $sign_pkey;
-        $this->ca_cert = $ca_cert;
-        $this->client_cert = $client_cert;
-        $this->client_cert_pass = $client_cert_pass;
+        $this->inn = (int) $inn;
+        $this->url = (string) $url;
+        $this->private_key_pem = (string) $sign_pkey;
+        $this->ca_cert = (string) $ca_cert;
+        $this->client_cert = (string) $client_cert;
+        $this->client_cert_pass = (string) $client_cert_pass;
         $this->debug_file = getcwd() . '/curl.log';
     }
 
@@ -90,7 +100,7 @@ class orangedata_client {
     /**
      * 
      * @param float $quantity Количество товара, Десятичное число с точностью до 3 символов после точки
-     * @param int $price Десятичное число в копейках
+     * @param int $price Целое число в копейках
      * @param int $tax Ставка НДС:
      * 1 – ставка НДС 18%
      * 2 – ставка НДС 10%
@@ -135,7 +145,7 @@ class orangedata_client {
      * 14 – Предвариательная оплата(Аванс)
      * 15 – Последующая оплата(Кредит)
      * 16 – Иная форма оплаты
-     * @param int $amount Десятичное число в копейках 
+     * @param int $amount Целое число в копейках 
      * @return $this
      * @throws Exception
      */
@@ -151,11 +161,16 @@ class orangedata_client {
         return $this;
     }
 
+    /**
+     * Execute Curl and return answer
+     * @return mixed
+     * @throws \Exception
+     */
     public function send_order() {
         $jsonstring = json_encode($this->order_request, JSON_PRESERVE_ZERO_FRACTION);
         $sign = $this->sign_order_request($jsonstring);
 
-        $curl = curl_init($this->url);
+        $curl = $this->prepare_curl($this->url);
         $headers = array(
             "X-Signature: " . $sign,
             "Connection: Keep-Alive",
@@ -163,17 +178,9 @@ class orangedata_client {
             "Content-Type: application/json; charset=utf-8",
             "Expect: 100-continue"
         );
-        curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
-        curl_setopt($curl, CURLOPT_SSLCERT, $this->client_cert);
-        curl_setopt($curl, CURLOPT_SSLCERTPASSWD, $this->client_cert_pass);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonstring);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
 
         $answer = curl_exec($curl);
         if (!$answer) {
@@ -182,20 +189,15 @@ class orangedata_client {
         return $answer;
     }
 
+    /**
+     * 
+     * @param type $id order id
+     * @return mixed curl return string
+     * @throws \Exception
+     */
     public function get_order_status($id) {
-        $url = $this->url . $this->inn . '/status/' . $id;
-        $curl = curl_init($url);
-        curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
-        curl_setopt($curl, CURLOPT_SSLCERT, $this->client_cert);
-        curl_setopt($curl, CURLOPT_SSLCERTPASSWD, $this->client_cert_pass);
+        $curl = $this->prepare_curl($this->url . $this->inn . '/status/' . $id);
         curl_setopt($curl, CURLOPT_POST, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($curl, CURLOPT_VERBOSE, 1);
-        curl_setopt($curl, CURLOPT_STDERR, fopen($this->debug_file, 'a'));
         $answer = curl_exec($curl);
         if (!$answer) {
             throw new \Exception(curl_error($curl));
@@ -205,12 +207,34 @@ class orangedata_client {
 
     private function sign_order_request($jsonstring) {
         $binary_signature = "";
-        $r = openssl_sign($jsonstring, $binary_signature, $this->private_key_pem, OPENSSL_ALGO_SHA256);
+        $r = openssl_sign($jsonstring, $binary_signature, file_get_contents($this->private_key_pem), OPENSSL_ALGO_SHA256);
         if ($r) {
             return base64_encode($binary_signature);
         } else {
             return false;
         }
+    }
+
+    private function prepare_curl($url) {
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
+        curl_setopt($curl, CURLOPT_SSLCERT, $this->client_cert);
+        curl_setopt($curl, CURLOPT_SSLCERTPASSWD, $this->client_cert_pass);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        if ($this->debug) {
+            curl_setopt($curl, CURLOPT_VERBOSE, 1);
+            curl_setopt($curl, CURLOPT_STDERR, fopen($this->debug_file, 'a'));
+        }
+        return $curl;
+    }
+
+    public function is_debug(bool $is_debug = true) {
+        $this->debug = (bool) $is_debug;
+        return $this;
     }
 
 }
