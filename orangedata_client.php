@@ -18,12 +18,13 @@ class orangedata_client {
     private $inn;
     private $debug_file;
 
-    public function __construct($inn, $url, $sign_pkey, $ca_cert, $client_cert) {
+    public function __construct($inn, $url, $sign_pkey, $ca_cert, $client_cert, $client_cert_pass) {
         $this->inn = $inn;
         $this->url = $url;
         $this->private_key_pem = $sign_pkey;
         $this->ca_cert = $ca_cert;
         $this->client_cert = $client_cert;
+        $this->client_cert_pass = $client_cert_pass;
         $this->debug_file = getcwd() . '/curl.log';
     }
 
@@ -164,7 +165,7 @@ class orangedata_client {
         );
         curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
         curl_setopt($curl, CURLOPT_SSLCERT, $this->client_cert);
-        curl_setopt($curl, CURLOPT_SSLCERTPASSWD, '1234');
+        curl_setopt($curl, CURLOPT_SSLCERTPASSWD, $this->client_cert_pass);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonstring);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -186,7 +187,7 @@ class orangedata_client {
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
         curl_setopt($curl, CURLOPT_SSLCERT, $this->client_cert);
-        curl_setopt($curl, CURLOPT_SSLCERTPASSWD, '1234');
+        curl_setopt($curl, CURLOPT_SSLCERTPASSWD, $this->client_cert_pass);
         curl_setopt($curl, CURLOPT_POST, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
