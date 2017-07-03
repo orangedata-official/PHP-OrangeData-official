@@ -18,6 +18,7 @@ class orangedata_client {
     private $inn;
     private $debug_file;
     private $debug = false;
+    private $ca_cert = false;
 
     /**
      * 
@@ -28,11 +29,10 @@ class orangedata_client {
      * @param string $client_cert   path to Client 2SSL Certificate
      * @param string $client_cert_pass password for Client 2SSL Certificate
      */
-    public function __construct($inn, $url, $sign_pkey, $ca_cert, $client_cert, $client_cert_pass) {
+    public function __construct($inn, $url, $sign_pkey, $client_cert, $client_cert_pass) {
         $this->inn = (int) $inn;
         $this->url = (string) $url;
         $this->private_key_pem = (string) $sign_pkey;
-        $this->ca_cert = (string) $ca_cert;
         $this->client_cert = (string) $client_cert;
         $this->client_cert_pass = (string) $client_cert_pass;
         $this->debug_file = getcwd() . '/curl.log';
@@ -217,7 +217,9 @@ class orangedata_client {
 
     private function prepare_curl($url) {
         $curl = curl_init($url);
-        curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
+        if ($this->ca_cert!==false) {
+            curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
+        }
         curl_setopt($curl, CURLOPT_SSLCERT, $this->client_cert);
         curl_setopt($curl, CURLOPT_SSLCERTPASSWD, $this->client_cert_pass);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -235,6 +237,10 @@ class orangedata_client {
     public function is_debug(bool $is_debug = true) {
         $this->debug = (bool) $is_debug;
         return $this;
+    }
+    
+    public function set_ca_cert($path_to_cert) {
+        $this->ca_cert = (string) $path_to_cert;
     }
 
 }
