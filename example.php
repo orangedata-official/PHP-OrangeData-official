@@ -10,7 +10,6 @@ $sign_pkey = getcwd().'/secure_path/private_key.pem';
 $byer = new orangedata\orangedata_client('0123456789', //ИНН
         $api_url,
         $sign_pkey,//private key for signing
-        getcwd() . '/secure_path/client_ca.crt', //path to CA CERTIFICATE
         getcwd() . '/secure_path/client.pem',//path to Client cert in PEM
         'Str0ngP@$$w0rD'); //password for client cert 
 
