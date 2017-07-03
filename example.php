@@ -17,6 +17,7 @@ $byer = new orangedata\orangedata_client('0123456789', //ИНН
 // create client new order, add positions , add payment, send request
 $result = $byer
         ->is_debug()
+        ->set_ca_cert(getcwd() . '/secure_path/client_ca.crt')//path to CA CERTIFICATE
         ->create_order(2, 1, 'a@b',1)
         ->add_position_to_order(6,10,1,'mathes')
         ->add_payment_to_order(1, 10)
