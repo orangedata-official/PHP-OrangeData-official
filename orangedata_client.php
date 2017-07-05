@@ -25,7 +25,7 @@ class orangedata_client {
      * @param mixed $inn
      * @param mixed $url
      * @param string $sign_pkey  path to signing private key or his PEM body
-     * @param string $ca_cert   path to CA certificate
+     * @param string $client_key   path to client private key
      * @param string $client_cert   path to Client 2SSL Certificate
      * @param string $client_cert_pass password for Client 2SSL Certificate
      */
