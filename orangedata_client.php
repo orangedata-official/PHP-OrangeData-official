@@ -25,14 +25,15 @@ class orangedata_client {
      * @param mixed $inn
      * @param mixed $url
      * @param string $sign_pkey  path to signing private key or his PEM body
-     * @param string $ca_cert   path to CA certificate
+     * @param string $client_key   path to client private key
      * @param string $client_cert   path to Client 2SSL Certificate
      * @param string $client_cert_pass password for Client 2SSL Certificate
      */
-    public function __construct($inn, $url, $sign_pkey, $client_cert, $client_cert_pass) {
+    public function __construct($inn, $url, $sign_pkey, $client_key, $client_cert, $client_cert_pass) {
         $this->inn = (int) $inn;
         $this->url = (string) $url;
         $this->private_key_pem = (string) $sign_pkey;
+        $this->client_pkey = (string) $client_key;
         $this->client_cert = (string) $client_cert;
         $this->client_cert_pass = (string) $client_cert_pass;
         $this->debug_file = getcwd() . '/curl.log';
@@ -217,16 +218,16 @@ class orangedata_client {
 
     private function prepare_curl($url) {
         $curl = curl_init($url);
-        if ($this->ca_cert!==false) {
+        if ($this->ca_cert !== false) {
             curl_setopt($curl, CURLOPT_CAINFO, $this->ca_cert);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
         }
+        curl_setopt($curl, CURLOPT_SSLKEY, $this->client_pkey);
         curl_setopt($curl, CURLOPT_SSLCERT, $this->client_cert);
         curl_setopt($curl, CURLOPT_SSLCERTPASSWD, $this->client_cert_pass);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 15);
         if ($this->debug) {
             curl_setopt($curl, CURLOPT_VERBOSE, 1);
             curl_setopt($curl, CURLOPT_STDERR, fopen($this->debug_file, 'a'));
@@ -238,7 +239,7 @@ class orangedata_client {
         $this->debug = (bool) $is_debug;
         return $this;
     }
-    
+
     public function set_ca_cert($path_to_cert) {
         $this->ca_cert = (string) $path_to_cert;
     }
