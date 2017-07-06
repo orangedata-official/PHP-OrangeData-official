@@ -20,7 +20,6 @@ $byer = new orangedata\orangedata_client($inn,
 
 //for sandbox
 $byer->is_debug()->set_ca_cert(getcwd() . '/secure_path/server.crt'); //path to ca certificate for suport selfsigned certificates
-   
 
 // create client new order, add positions , add payment, send request
 $result = $byer
