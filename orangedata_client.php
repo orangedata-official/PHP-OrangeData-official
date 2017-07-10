@@ -185,7 +185,7 @@ class orangedata_client {
 
         $answer = curl_exec($curl);
         if (!$answer) {
-            throw new \Exception(curl_error($curl));
+            throw new \Exception('Curl error '.curl_error($curl));
         }
         return $answer;
     }
