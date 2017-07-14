@@ -184,10 +184,27 @@ class orangedata_client {
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
         $answer = curl_exec($curl);
-        if (!$answer) {
-            throw new \Exception('Curl error '.curl_error($curl));
+        $info = curl_getinfo($curl);
+        switch ($info['http_code']) {
+            case '201':
+            case '401':
+            case '409':
+            case '400':
+                $return = array('http_code' => $info['http_code'], 'response' => $answer);
+                break;
+
+            default:
+                $return = false;
+                break;
         }
-        return $answer;
+
+        if (FALSE === $return) {
+            ob_start();
+            var_dump($info);
+            $last_curl = ob_get_flush();
+            throw new \Exception('Curl error ' . PHP_EOL . $last_curl);
+        }
+        return $return;
     }
 
     /**
@@ -200,10 +217,27 @@ class orangedata_client {
         $curl = $this->prepare_curl($this->url . $this->inn . '/status/' . $id);
         curl_setopt($curl, CURLOPT_POST, false);
         $answer = curl_exec($curl);
-        if (!$answer) {
-            throw new \Exception(curl_error($curl));
+        $info = curl_getinfo($curl);
+        switch ($info['http_code']) {
+            case '202':
+            case '404':
+            case '401':
+            case '200':
+                $return = array('http_code' => $info['http_code'], 'response' => $answer);
+                break;
+
+            default:
+                $return = false;
+                break;
         }
-        return $answer;
+
+        if (FALSE === $return) {
+            ob_start();
+            var_dump($info);
+            $last_curl = ob_get_flush();
+            throw new \Exception('Curl error ' . PHP_EOL . $last_curl);
+        }
+        return $return;
     }
 
     private function sign_order_request($jsonstring) {
