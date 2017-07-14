@@ -19,6 +19,11 @@ class orangedata_client {
     private $debug_file;
     private $debug = false;
     private $ca_cert = false;
+    
+    private $private_key_pem;
+    private $client_pkey;
+    private $client_cert;
+    private $client_cert_pass;
 
     /**
      * 
@@ -187,10 +192,20 @@ class orangedata_client {
         $info = curl_getinfo($curl);
         switch ($info['http_code']) {
             case '201':
-            case '401':
-            case '409':
+                $return = true;
+                break;
+
             case '400':
-                $return = array('http_code' => $info['http_code'], 'response' => $answer);
+                $return = $answer;
+                break;
+
+            case '401':
+                throw new \Exception('Unauthorized. Client certificate check is failed');
+                break;
+
+            case '409':
+                throw new \Exception('Conflict. Order with same id is already exists in the system.');
+                break;
                 break;
 
             default:
@@ -210,7 +225,7 @@ class orangedata_client {
     /**
      * 
      * @param type $id order id
-     * @return mixed curl return string
+     * @return mixed 
      * @throws \Exception
      */
     public function get_order_status($id) {
@@ -220,10 +235,19 @@ class orangedata_client {
         $info = curl_getinfo($curl);
         switch ($info['http_code']) {
             case '202':
+                $return = TRUE;
+                break;
+            
             case '404':
+                throw new \Exception('Not Found. Order was not found in the system.');
+                break;
+
             case '401':
+                throw new \Exception('Unauthorized. Client certificate check is failed');
+                break;
+            
             case '200':
-                $return = array('http_code' => $info['http_code'], 'response' => $answer);
+                $return =  $answer;
                 break;
 
             default:
