@@ -19,6 +19,11 @@ class orangedata_client {
     private $debug_file;
     private $debug = false;
     private $ca_cert = false;
+    
+    private $private_key_pem;
+    private $client_pkey;
+    private $client_cert;
+    private $client_cert_pass;
 
     /**
      * 
@@ -184,26 +189,79 @@ class orangedata_client {
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
         $answer = curl_exec($curl);
-        if (!$answer) {
-            throw new \Exception(curl_error($curl));
+        $info = curl_getinfo($curl);
+        switch ($info['http_code']) {
+            case '201':
+                $return = true;
+                break;
+
+            case '400':
+                $return = $answer;
+                break;
+
+            case '401':
+                throw new \Exception('Unauthorized. Client certificate check is failed');
+                break;
+
+            case '409':
+                throw new \Exception('Conflict. Order with same id is already exists in the system.');
+                break;
+                break;
+
+            default:
+                $return = false;
+                break;
         }
-        return $answer;
+
+        if (FALSE === $return) {
+            ob_start();
+            var_dump($info);
+            $last_curl = ob_get_flush();
+            throw new \Exception('Curl error ' . PHP_EOL . $last_curl);
+        }
+        return $return;
     }
 
     /**
      * 
      * @param type $id order id
-     * @return mixed curl return string
+     * @return mixed 
      * @throws \Exception
      */
     public function get_order_status($id) {
         $curl = $this->prepare_curl($this->url . $this->inn . '/status/' . $id);
         curl_setopt($curl, CURLOPT_POST, false);
         $answer = curl_exec($curl);
-        if (!$answer) {
-            throw new \Exception(curl_error($curl));
+        $info = curl_getinfo($curl);
+        switch ($info['http_code']) {
+            case '202':
+                $return = TRUE;
+                break;
+            
+            case '404':
+                throw new \Exception('Not Found. Order was not found in the system.');
+                break;
+
+            case '401':
+                throw new \Exception('Unauthorized. Client certificate check is failed');
+                break;
+            
+            case '200':
+                $return =  $answer;
+                break;
+
+            default:
+                $return = false;
+                break;
         }
-        return $answer;
+
+        if (FALSE === $return) {
+            ob_start();
+            var_dump($info);
+            $last_curl = ob_get_flush();
+            throw new \Exception('Curl error ' . PHP_EOL . $last_curl);
+        }
+        return $return;
     }
 
     private function sign_order_request($jsonstring) {
