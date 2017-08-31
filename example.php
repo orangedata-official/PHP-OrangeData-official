@@ -134,7 +134,7 @@ $byer = new orangedata\orangedata_client($inn,
 $result = $byer
         ->create_order('3268483278', 1, 'example@example.com', 1)
         ->add_position_to_order(6, 10, 1, 'matches', 1, 10)
-		->add_payment_to_order(1, 10)
+	->add_payment_to_order(1, 10)
         ->add_payment_to_order(2, 50)
         ->send_order();
 
