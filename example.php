@@ -1,12 +1,11 @@
 <?php
 
 /**
- *Пример для библиотеки OrangeDataClient PHP Beta version 2.0.0
- *Библиотека корректно работает с версией PHP: 7+
+ * Пример для библиотеки OrangeDataClient PHP Beta version 2.0.0
+ * Библиотека корректно работает с версией PHP: 7+
  */
-
 /**
- *create_order(a, b, c, d, e*) - Создание нового чека
+ * create_order(a, b, c, d, e*) - Создание нового чека
  *  Параметры:
  *    a ($id) - Идентификатор документа (Строка от 1 до 32 символов)
  *    b ($type) - Признак расчета (Число от 1 до 4):
@@ -27,9 +26,8 @@
  *    Пример запроса:
  *        create_order('2234', 1, 'ex@example.ex', 5);
  */
- 
 /**
- *add_position_to_order(a, b, c, d, e*, f*) - Добавление позиций в чек
+ * add_position_to_order(a, b, c, d, e*, f*) - Добавление позиций в чек
  *  Параметры:
  *    a ($quantity) - Количество предмета расчета (Десятичное число с точностью до 6 символов после точки*)
  *    b ($price) - Цена за единицу предмета расчета с учетом скидок и наценок (Десятичное число с точностью до 2 символов после точки*)
@@ -74,9 +72,8 @@
  *        Запрос с пропуском полей 'e*' и 'f*':
  *          add_position_to_order(6, 200, 'ex@example.ex', 2); (Поле e* = 4, поле f* = 1)
  */
- 
 /**
- *add_payment_to_order(a, b) - Добавление позиций в чек
+ * add_payment_to_order(a, b) - Добавление позиций в чек
  *  Параметры:
  *    a ($type) - Тип оплаты (Число от 1 до 16):
  *          1 – сумма по чеку наличными, 1031
@@ -85,63 +82,110 @@
  *          15 – сумма по чеку постоплатой (в кредит), 1216
  *          16 – сумма по чеку (БСО) встречным предоставлением, 1217
  *    b ($amount) - Сумма оплаты (Десятичное число с точностью до 2 символов после точки*)
- *    !ВАЖНО переменная b ($amount) указывается в копейках
  *
  *    Примеры запроса:
- *        add_payment_to_order(1, 270); (Поле b ($amount) будет равняться 270/100=2,70)
+ *        add_payment_to_order(1, 2.7); 
  */
- 
 /**
- *send_order() - Отправка чека на обработку
+ * send_order() - Отправка чека на обработку
  */
- 
 /**
- *get_order_status(a) - Проверка состояния чека
+ * get_order_status(a) - Проверка состояния чека
  *  Параметры:
  *    a ($id) - Идентификатор документа (Строка от 1 до 32 символов)
  *
  *    Пример запроса:
  *        get_order_status(435621);
  */
- 
 /**
- *is_debug() - Данная функция служит для активации записей в файле 'curl.log'
- */ 
+ * is_debug() - Данная функция служит для активации записей в файле 'curl.log'
+ */
+include_once 'orangedata_client.php'; //Путь к библиотеке (как правило это файл orangedata_client.php или orangedataclient_Beta.php)
 
-include_once 'orangedata_client_Beta.php'; //Путь к библиотеке (как правило это файл orangedata_client.php или orangedataclient_Beta.php)
-
-$api_url='https://apip.orangedata.ru:2443/api/v2/documents/';
-$sign_pkey = getcwd().'\secure_path\private_key.pem'; //path to private key for signing
-$ssl_client_key = getcwd().'\secure_path\client.key'; //path to client private key for ssl
-$ssl_client_crt = getcwd().'\secure_path\client.crt'; //path to client certificate for ssl
-$ssl_ca_cert = getcwd().'\secure_path\cacert.pem'; //path to cacert for ssl
+$api_url = 'https://apip.orangedata.ru:2443/api/v2/documents/';
+$sign_pkey = getcwd() . '\secure_path\private_key.pem'; //path to private key for signing
+$ssl_client_key = getcwd() . '\secure_path\client.key'; //path to client private key for ssl
+$ssl_client_crt = getcwd() . '\secure_path\client.crt'; //path to client certificate for ssl
+$ssl_ca_cert = getcwd() . '\secure_path\cacert.pem'; //path to cacert for ssl
 $ssl_client_crt_pass = 1234; //password for client certificate for ssl
 $inn = '0123456789'; //ИНН
-
 //create new client
-$byer = new orangedata\orangedata_client($inn, 
-        $api_url,
-        $sign_pkey,
-        $ssl_client_key,
-        $ssl_client_crt,
-	$ssl_ca_cert,
-        $ssl_client_crt_pass);
+$byer = new orangedata\orangedata_client($inn, $api_url, $sign_pkey, $ssl_client_key, $ssl_client_crt, $ssl_ca_cert, $ssl_client_crt_pass);
 
 //for write curl.log file
 //$byer->is_debug();
-
 // create client new order, add positions , add payment, send request
-$result = $byer
-        ->create_order('3268483278', 1, 'example@example.com', 1)
-        ->add_position_to_order(6, 10, 1, 'matches', 1, 10)
-	->add_payment_to_order(1, 10)
-        ->add_payment_to_order(2, 50)
-        ->send_order();
+$byer->create_order('3268483278', 1, 'example@example.com', 1)
+        ->add_position_to_order(6.123456, '10.', 1, 'matches', 1, 10)
+        ->add_position_to_order(7, 10, 1, 'matches2', null, 10)
+        ->add_position_to_order(345., 10.76, 1, 'matches3', 3, null)
+        ->add_payment_to_order(1, 131.23)
+        ->add_payment_to_order(2, 3712.2);
+try {
+    //view response
+    $result = $byer->send_order();
+    var_dump($result);
+} catch (Exception $ex) {
+    echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
+}
 
-//view response
-var_dump($result);
 
 //view status of order 
-var_dump($byer->get_order_status(3268483278));
+try {
+    $order_status = $byer->get_order_status(3268483278);
+    var_dump($order_status);
+} catch (Exception $ex) {
+    echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
+}
 
+///Создания чека коррекции
+$byer->create_correction(
+        'cor1', //id  Идентификатор документа (Строка от 1 до 32 символов)
+        0, //correctionType 1173, тип коррекции
+        //0. Самостоятельно
+        //1. По предписанию
+        3, //type Признак расчета, 1054:
+        //1. Приход
+        //3. Расход 
+        ' Ошибка Кассира1', // description 1177, описание коррекции Строка от 1 до 244 символов
+        new \DateTime(), // causeDocumentDate DateTime объект .1178, дата документа основания для коррекции В данном реквизите время всегда приводится, к 00:00:00.  Время в виде строки в формате ISO8601
+        '56ce', // causeDocumentNumber 1179, номер документа основания для коррекции Строка от 1 до 32 символов
+        567.9, // totalSum 1020, сумма расчета, указанного в чеке (БСО) Десятичное число с точностью до 2 символов после точки
+        567, // cashSum 1031, сумма по чеку (БСО) наличными Десятичное число с точностью до 2 символов после точки
+        0.9, // eCashSum 1081, сумма по чеку (БСО) электронными Десятичное число с точностью до 2 символов после точки
+        0, // prepaymentSum 1215, сумма по чеку (БСО) предоплатой (зачетом аванса и (или) предыдущих платежей) Десятичное число с точностью до 2 символов после точки
+        0, // postpaymentSum 1216, сумма по чеку (БСО) постоплатой (в кредит) Десятичное число с точностью до 2 символов после точки
+        0, // otherPaymentTypeSum 1217, сумма по чеку (БСО) встречным предоставлением Десятичное число с точностью до 2 символов после точки
+        0, // tax1Sum 1102, сумма НДС чека по ставке 18% Десятичное число с точностью до 2 символов после точки
+        0, // tax2Sum 1103, сумма НДС чека по ставке 10% Десятичное число с точностью до 2 символов после точки
+        0, // tax3Sum 1104, сумма расчета по чеку с НДС по ставке 0% Десятичное число с точностью до 2 символов после точки
+        0, // tax4Sum 1105, сумма расчета по чеку без НДС Десятичное число с точностью до 2 символов после точки
+        0, // tax5Sum 1106, сумма НДС чека по расч. ставке 18/118 Десятичное число с точностью до 2 символов после точки
+        0, // tax6Sum 1107, сумма НДС чека по расч. ставке 10/110 Десятичное число с точностью до 2 символов после точки
+        2, // taxationSystem 1055, применяемая система налогообложения
+        //0. Общая
+        //1. Упрощенная доход
+        //2. Упрощенная доход минус расход
+        //3. Единый налог на вмененный доход
+        //4. Единый сельскохозяйственный налог
+        //5. Патентная система налогообложения
+        //Число
+        'Main', // group Группа устройств, с помощью которых будет пробит чек Строка от 1 до 32 символов или null. Опциональный параметр.
+        null // key Название ключа который должен быть использован для проверки подпись. Опциональный параметр. Если имя ключа не указано для проверки подписи будет использован ключ, заданный по умолчанию.
+        //Строка от 1 до 32 символов либо null
+);
+try {
+    $result = $byer->post_correction();
+//view response
+    var_dump($result);
+} catch (Exception $ex) {
+    echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
+}
+//view status of correction
+try {
+    $cor_status = $byer->get_correction_status('cor1');
+    var_dump($cor_status);
+} catch (Exception $ex) {
+    echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
+}
 ?>
