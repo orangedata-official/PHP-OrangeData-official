@@ -182,7 +182,7 @@ class orangedata_client {
     public function send_order() {
         $jsonstring = json_encode($this->order_request, JSON_PRESERVE_ZERO_FRACTION);
         $sign = $this->sign_order_request($jsonstring);
-        $curl = $this->prepare_curl($this->url .= '/api/v2/documents/');
+        $curl = $this->prepare_curl($this->url . '/api/v2/documents/');
         $headers = array(
             "Content-Length: " . strlen($jsonstring),
             "Content-Type: application/json; charset=utf-8",
@@ -231,7 +231,7 @@ class orangedata_client {
         if (strlen($id) > 32 OR strlen($id) == 0) {
             throw new Exception('Invalid order identifier');
         }
-        $curl = $this->prepare_curl($this->url . $this->inn . '/status/' . $id);
+        $curl = $this->prepare_curl($this->url . '/api/v2/documents/' . $this->inn . '/status/' . $id);
         curl_setopt($curl, CURLOPT_POST, false);
         $answer = curl_exec($curl);
         $info = curl_getinfo($curl);
@@ -293,9 +293,43 @@ class orangedata_client {
         return $this;
     }
 
+    /**
+     * create_correction(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t*, u*) - Создание чека-коррекции
+     *  @param $id (a) - Идентификатор документа (Строка от 1 до 32 символов)
+     *  @param $correctionType (b) - 1173, тип коррекции (Число):
+     *      0 - Самостоятельно
+     *      1 - По предписанию
+     *  @param $type (c) - Признак расчета, 1054 (Число):
+     *      1 - Приход
+     *      3 - Расход
+     *  @param $description (d) - 1177, описание коррекции (Строка от 1 до 244 символов)
+     *  @param $causeDocumentDate (e) - 1178, дата документа основания для коррекции В данном реквизите время всегда указывать, как 00:00:00 (Время в виде строки в формате ISO8601)
+     *  @param $causeDocumentNumber (f) - 1179, номер документа основания для коррекции (Строка от 1 до 32 символов)
+     *  @param $totalSum (g) - 1020, сумма расчета, указанного в чеке (БСО) (Десятичное число с точностью до 2 символов после точки)
+     *  @param $cashSum (h) - 1031, сумма по чеку (БСО) наличными (Десятичное число с точностью до 2 символов после точки)
+     *  @param $eCashSum (i) - 1081, сумма по чеку (БСО) электронными (Десятичное число с точностью до 2 символов после точки)
+     *  @param $prepaymentSum (j) - 1215, сумма по чеку (БСО) предоплатой (зачетом аванса и (или) предыдущих платежей) (Десятичное число с точностью до 2 символов после точки)
+     *  @param $postpaymentSum (k) - 1216, сумма по чеку (БСО) постоплатой (в кредит) (Десятичное число с точностью до 2 символов после точки)
+     *  @param $otherPaymentTypeSum (l) - 1217, сумма по чеку (БСО) встречным предоставлением (Десятичное число с точностью до 2 символов после точки)
+     *  @param $tax1Sum (m) - 1102, сумма НДС чека по ставке 18% (Десятичное число с точностью до 2 символов после точки)
+     *  @param $tax2Sum (n) - 1103, сумма НДС чека по ставке 10% (Десятичное число с точностью до 2 символов после точки)
+     *  @param $tax3Sum (o) - 1104, сумма расчета по чеку с НДС по ставке 0% (Десятичное число с точностью до 2 символов после точки)
+     *  @param $tax4Sum (p) - 1105, сумма расчета по чеку без НДС (Десятичное число с точностью до 2 символов после точки)
+     *  @param $tax5Sum (q) - 1106, сумма НДС чека по расч. ставке 18/118 (Десятичное число с точностью до 2 символов после точки)
+     *  @param $tax6Sum (r) - 1107, сумма НДС чека по расч. ставке 10/110 (Десятичное число с точностью до 2 символов после точки)
+     *  @param $taxationSystem (s) - 1055, применяемая система налогообложения (Число):
+     *      0 - Общая
+     *      1 - Упрощенная доход
+     *      2 - Упрощенная доход минус расход
+     *      3 - Единый налог на вмененный доход
+     *      4 - Единый сельскохозяйственный налог
+     *      5 - Патентная система налогообложения
+     *  @param $group (t*) - Группа устройств, с помощью которых будет пробит чек (не всегда является обязательным полем)
+     *  @param $key (u*) - Название ключа который должен быть использован для проверки подпись
+     *  @return $this
+     *  @throws Exception
+     */
     public function create_correction($id, $correctionType, $type, $description, DateTime $causeDocumentDate, $causeDocumentNumber, $totalSum, $cashSum, $eCashSum, $prepaymentSum, $postpaymentSum, $otherPaymentTypeSum, $tax1Sum, $tax2Sum, $tax3Sum, $tax4Sum, $tax5Sum, $tax6Sum, $taxationSystem, $group = null, $key = null) {
-
-        
         $this->correction_request = new \stdClass();
         $this->correction_request->id = (string) $id;
         $this->correction_request->inn = $this->inn;
@@ -338,13 +372,18 @@ class orangedata_client {
         return $this;
     }
 
+    /**
+     * post_correction() - Отправка чека-коррекции на обработку
+     *  @return bool|mixed
+     *  @throws Exception
+     */
     public function post_correction() {
         $jsonstring = json_encode($this->correction_request, JSON_PRESERVE_ZERO_FRACTION);
         if(!$jsonstring){
             throw  new Exception('JSON encode error:' . json_last_error_msg());
         }
         $sign = $this->sign_order_request($jsonstring);
-        $curl = $this->prepare_curl($this->url .= '/api/v2/corrections/');
+        $curl = $this->prepare_curl($this->url . '/api/v2/corrections/');
         $headers = array(
             "Content-Length: " . strlen($jsonstring),
             "Content-Type: application/json; charset=utf-8",
@@ -382,7 +421,13 @@ class orangedata_client {
         }
         return $return;
     }
-    
+
+    /**
+     * get_correction_status(a) - Проверка состояния чека-коррекции
+     *  @param $id (a) - Идентификатор документа (Строка от 1 до 32 символов)
+     *  @return bool|mixed
+     *  @throws Exception
+     */
     public function get_correction_status($id) {
         if (strlen($id) > 32 OR strlen($id) == 0) {
             throw new Exception('Invalid order identifier');
