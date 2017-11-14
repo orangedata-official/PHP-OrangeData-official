@@ -1,8 +1,8 @@
-<?php
+ <?php
 
 /**
- * Пример для библиотеки OrangeDataClient PHP Beta version 2.0.2
- * Библиотека корректно работает с версией PHP: 5.4+
+ * Пример для библиотеки OrangeDataClient PHP version 2.1.0
+ * Библиотека корректно работает с версией PHP: 5.6.6+
  */
 /**
  * create_order(a, b, c, d, e*) - Создание нового чека
@@ -90,6 +90,38 @@
  * send_order() - Отправка чека на обработку
  */
 /**
+ * add_agent_to_order(a, b, c, d, e, f, g, h, i) - Добавление агента
+ *  Параметры:
+ *    a ($agentType) - Признак агента, 1057. Битовое поле, где номер бита обозначает, что оказывающий услугу покупателю (клиенту) пользователь является (Число от 1 до 127):
+ *         0 – банковский платежный агент
+ *         1 – банковский платежный субагент
+ *         2 – платежный агент
+ *         3 – платежный субагент
+ *         4 – поверенный
+ *         5 – комиссионер
+ *         6 – иной агент
+ *    b ($payTOP) - Телефон оператора перевода, 1075 (Массив строк длиной от 1 до 19 символов, формат +{Ц})
+ *    c ($payAO) - Операция платежного агента, 1044 (Строка длиной от 1 до 24 символов)
+ *    d ($payAPN) - Телефон платежного агента, 1073 (Массив строк длиной от 1 до 19 символов, формат +{Ц})
+ *    e ($payOPN) - Телефон оператора по приему платежей, 1074 (Массив строк длиной от 1 до 19 символов, формат +{Ц})
+ *    f ($payON) - Наименование оператора перевода, 1026 (Строка длиной от 1 до 64 символов)
+ *    g ($payOA) - Адрес оператора перевода, 1005 (Строка длиной от 1 до 244 символов)
+ *    h ($payOpINN) - ИНН оператора перевода, 1016 (Строка длиной от 10 до 12 символов, формат ЦЦЦЦЦЦЦЦЦЦ)
+ *    i ($supPN) - Телефон поставщика, 1171 (Массив строк длиной от 1 до 19 символов, формат +{Ц})
+ *
+ *    Примеры запроса:
+ *       add_agent_to_order(127, ['+79998887766', '+76667778899'], 'Operation', ['+79998887766'], ['+79998887766'], 'Name', 'ulitsa Adress, dom 7' , 3123011520, ['+79998887766', '+76667778899'])
+ */
+/**
+ * add_user_attribute(a, b) - Добавление дополнительного реквизита пользователя, 1084
+ *  Параметры:
+ *    a ($name) - Наименование дополнительного реквизита пользователя, 1085 (Строка от 1 до 64 символов)
+ *    b ($value) - Значение дополнительного реквизита пользователя, 1086 (Строка от 1 до 175 символов)
+ *
+ *    Примеры запроса:
+ *      add_user_attribute('Любимая цитата', 'В здоровом теле здоровый дух, этот лозунг еще не потух!')
+ */
+/**
  * get_order_status(a) - Проверка состояния чека
  *  Параметры:
  *    a ($id) - Идентификатор документа (Строка от 1 до 32 символов)
@@ -144,7 +176,9 @@
 
 include_once 'orangedata_client.php'; //Путь к библиотеке (как правило это файл orangedata_client.php или orangedataclient_Beta.php)
 
-$api_url = 'https://apip.orangedata.ru:2443';
+$api_url = 2443; //number of the port
+//$api_url = 'https://apip.orangedata.ru:2443'; //link access
+
 $sign_pkey = getcwd() . '\secure_path\private_key.pem'; //path to private key for signing
 $ssl_client_key = getcwd() . '\secure_path\client.key'; //path to client private key for ssl
 $ssl_client_crt = getcwd() . '\secure_path\client.crt'; //path to client certificate for ssl
@@ -157,23 +191,26 @@ $byer = new orangedata\orangedata_client($inn, $api_url, $sign_pkey, $ssl_client
 //for write curl.log file
 //$byer->is_debug();
 
-// create client new order, add positions , add payment, send request
-$byer->create_order('3268483278', 1, 'example@example.com', 1)
-        ->add_position_to_order(6.123456, '10.', 1, 'matches', 1, 10)
-        ->add_position_to_order(7, 10, 1, 'matches2', null, 10)
-        ->add_position_to_order(345., 10.76, 1, 'matches3', 3, null)
-        ->add_payment_to_order(1, 131.23)
-        ->add_payment_to_order(2, 3712.2);
 try {
+    //create client new order, add positions , add payment, send request
+    $byer->create_order('23423423434', 1, 'example@example.com', 1)
+          ->add_position_to_order(6.123456, '10.', 1, 'matches', 1, 10)
+          ->add_position_to_order(7, 10, 1, 'matches2', null, 10)
+          ->add_position_to_order(345., 10.76, 1, 'matches3', 3, null)
+          ->add_payment_to_order(1, 131.23)
+          ->add_payment_to_order(2, 3712.2)
+          ->add_agent_to_order(127,['+79998887766', '+76667778899'], 'Operation', ['+79998887766'], ['+79998887766'], 'Name', 'ulitsa Adress, dom 7', 3123011520, ['+79998887766', '+76667778899'])
+          ->add_user_attribute('Любимая цитата', 'В здоровом теле здоровый дух, этот лозунг еще не потух!');
+
     //view response
     $result = $byer->send_order();
     var_dump($result);
 } catch (Exception $ex) {
     echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
 }
-//view status of order 
+//view status of order
 try {
-    $order_status = $byer->get_order_status(3268483278);
+    $order_status = $byer->get_order_status(23423423434);
     var_dump($order_status);
 } catch (Exception $ex) {
     echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
@@ -181,7 +218,7 @@ try {
 
 ///Создания чека коррекции
 $byer->create_correction(
-        'cor1', //id  Идентификатор документа (Строка от 1 до 32 символов)
+        '23423423', //id  Идентификатор документа (Строка от 1 до 32 символов)
         0, //correctionType 1173, тип коррекции
         //0. Самостоятельно
         //1. По предписанию
@@ -211,7 +248,7 @@ $byer->create_correction(
         //4. Единый сельскохозяйственный налог
         //5. Патентная система налогообложения
         //Число
-        'Main', //group Группа устройств, с помощью которых будет пробит чек Строка от 1 до 32 символов или null. Опциональный параметр.
+        '1', //group Группа устройств, с помощью которых будет пробит чек Строка от 1 до 32 символов или null. Опциональный параметр.
         null //key Название ключа который должен быть использован для проверки подпись. Опциональный параметр. Если имя ключа не указано для проверки подписи будет использован ключ, заданный по умолчанию.
         //Строка от 1 до 32 символов либо null
 );
@@ -224,9 +261,10 @@ try {
 }
 //view status of correction
 try {
-    $cor_status = $byer->get_correction_status('cor1');
+    $cor_status = $byer->get_correction_status('23423423');
     var_dump($cor_status);
 } catch (Exception $ex) {
     echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
 }
+
 ?>
