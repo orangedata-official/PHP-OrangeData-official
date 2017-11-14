@@ -2,12 +2,15 @@
 PHP integration for OrangeData service
 Для начала работы необходимо подключить файл класса, например так:
 
-include_once 'orangedata_client.php'; //Путь к библиотеке (как правило это файл orangedata_client.php или orangedataclient_Beta.php)
+include_once 'orangedata_client.php'; //Путь к библиотеке
 
 Следует указать исходные данные:
 
-Адрес API или прокси, на который будем отправлять запросы:
-$api_url='https://apip.orangedata.ru:2443/api/v2/documents/';
+Порт, на который будет отправлять запросы:
+$api_url = 2443
+
+или Адрес API или прокси:
+$api_url='https://apip.orangedata.ru:2443'
 
 Путь к приватному ключу, который используется для подписи "чека":
 $sign_pkey = getcwd().'\secure_path\private_key.pem'; //private key for signing
@@ -30,7 +33,8 @@ $inn = '0123456789';//ИНН
 На основании исходных данных,
 Создаем "клиента"
 
-$byer = new orangedata\orangedata_client($inn, 
+$byer = new orangedata\orangedata_client(
+        $inn, 
         $api_url,
         $sign_pkey,
         $ssl_client_key,
@@ -52,6 +56,12 @@ $byer->add_position_to_order(6, 10, 1, 'matches', 1, 10)
 $byer->add_payment_to_order(1, 10)
 ->add_payment_to_order(2, 50)   ///а можно и несколько разных оплат
 
+Добавить агента:
+$byer->add_agent_to_order(127, ['+79998887766'], 'Operation', ['+79998887766'], ['+79998887766'], 'Name', 'ulitsa Adress, dom 7', 3123011520, ['+79998887766'])
+
+Добавить дополнительный реквизит пользователя:
+$byer->add_user_attribute('Любимая цитата', 'В здоровом теле здоровый дух, этот лозунг еще не потух!')
+
 и когда все готово - отправить заказ:
 $order_result = $byer->send_order();
 Метод возвращает (bool) true в случае успешного завершения,
@@ -66,5 +76,3 @@ json с деталями заказа, в случае успешного зав
 
 Методы send_order() и get_order_status($id) возвращают ответ сервера,
 в отличии от прочих методов, возвращающих сам родительский объект
-
-
