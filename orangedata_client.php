@@ -3,7 +3,7 @@
 /**
  * OrangeDataClient PHP
  * Version of PHP: 5.6.6+
- * @version 2.1.0
+ * @version 2.1.1
  */
 
 namespace orangedata;
@@ -46,7 +46,7 @@ class orangedata_client {
     }
 
     /**
-     * create_order(a, b, c, d, e*) - Создание чека
+     * create_order(a, b, c, d, e*, f*) - Создание чека
      *  @param string $id (a) - Идентификатор документа (Строка от 1 до 32 символов)
      *  @param int $type (b) - Признак расчета (Число от 1 до 4):
      *      1 - Приход
@@ -62,14 +62,16 @@ class orangedata_client {
      *      4 – Единый сельскохозяйственный налог, ЕСН
      *      5 – Патентная система налогообложения, Патент
      *  @param string $group (e*) - Группа устройств, с помощью которых будет пробит чек (не всегда является обязательным полем)
+     *  @param $key (f*) - Название ключа который должен быть использован для проверки подпись (Строка от 1 до 32 символов либо null)
      *  @return $this
      *  @throws Exception
      */
-    public function create_order($id, $type, $customerContact, $taxationSystem, $group = null) {
+    public function create_order($id, $type, $customerContact, $taxationSystem, $group = null, $key = null) {
         $this->order_request = new \stdClass();
         $this->order_request->id = (string) $id;
         $this->order_request->inn = $this->inn;
         $this->order_request->group = $group ?: 'Main';
+        if ($key) $this->order_request->key = $key;
         $this->order_request->content = new \stdClass();
         if (is_int($type) and preg_match('/^[1234]$/', $type)) {
             $this->order_request->content->type = $type;
