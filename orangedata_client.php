@@ -86,7 +86,21 @@ class orangedata_client {
         } else {
             throw new Exception('Incorrect taxationSystem' . PHP_EOL);
         }
-        if (filter_var($customerContact, FILTER_VALIDATE_EMAIL) or preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $customerContact)) {
+
+        $check_phone = function($customerContact) {
+            if (strlen($customerContact) == 11 && $customerContact[0] == 8)
+                $customerContact = '+7' . substr($customerContact, 1);
+
+            $phone_util = \libphonenumber\PhoneNumberUtil::getInstance();
+            try {
+                return $phone_util->isValidNumber($phone_util->parse($customerContact));
+            } catch (\libphonenumber\NumberParseException $e) {
+                trigger_error(sprintf('Incorrect customer phone %s', $customerContact));
+                return false;
+            }
+        };
+
+        if (filter_var($customerContact, FILTER_VALIDATE_EMAIL) or $check_phone($customerContact)) {
             $this->order_request->content->customerContact = $customerContact;
         } else {
             throw new Exception('Incorrect customer Contact' . PHP_EOL);

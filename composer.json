@@ -7,7 +7,9 @@
             "email": "patyrsa@com.gmail"
         }
     ],
-    "require": {},
+    "require": {
+        "giggsey/libphonenumber-for-php": "^8.9"
+    },
     "autoload": {
         "psr-4": { "orangedata\\": "" }
     }
