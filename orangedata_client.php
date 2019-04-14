@@ -12,7 +12,8 @@ use \DateTime;
 use \Exception;
 
 class orangedata_client {
-
+    
+    const MAX_ORDER_ID_LENGTH = 64;
     private $order_request;
     private $correction_request;
     private $api_url;
@@ -47,7 +48,7 @@ class orangedata_client {
 
     /**
      * create_order(a, b, c, d, e*, f*) - Создание чека
-     *  @param string $id (a) - Идентификатор документа (Строка от 1 до 32 символов)
+     *  @param string $id (a) - Идентификатор документа (Строка от 1 до 64 символов)
      *  @param int $type (b) - Признак расчета (Число от 1 до 4):
      *      1 - Приход
      *      2 - Возврат прихода
@@ -317,7 +318,7 @@ class orangedata_client {
      *  @throws Exception
      */
     public function get_order_status($id) {
-        if (strlen($id) > 32 OR strlen($id) == 0) {
+        if (strlen($id) > self::MAX_ORDER_ID_LENGTH OR strlen($id) == 0) {
             throw new Exception('Invalid order identifier');
         }
         $curl = is_int($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url, TRUE) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/documents/' . $this->inn . '/status/' . $id);
@@ -533,7 +534,7 @@ class orangedata_client {
      *  @throws Exception
      */
     public function get_correction_status($id) {
-        if (strlen($id) > 32 OR strlen($id) == 0) {
+        if (strlen($id) > self::MAX_ORDER_ID_LENGTH OR strlen($id) == 0) {
             throw new Exception('Invalid order identifier');
         }
         $curl = is_numeric($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url,FALSE) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/corrections/' . $this->inn . '/status/' . $id);
