@@ -132,7 +132,7 @@ class orangedata_client {
      *  @throws Exception
      */
     public function add_position_to_order($quantity, $price, $tax, $text, $paymentMethodType = null, $paymentSubjectType = null) {
-        if (is_numeric($quantity) and is_numeric($price) and preg_match('/^[123456]{1}$/', $tax) and strlen($text) < 129) {
+        if (is_numeric($quantity) and is_numeric($price) and preg_match('/^[123456]{1}$/', $tax) and mb_strlen($text) < 129) {
             $position = new \stdClass();
             $position->quantity = (float) $quantity;
             $position->price = (float) $price;

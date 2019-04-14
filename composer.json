@@ -7,7 +7,9 @@
             "email": "patyrsa@com.gmail"
         }
     ],
-    "require": {},
+    "require": {
+        "ext-mbstring": "*"
+    },
     "autoload": {
         "psr-4": { "orangedata\\": "" }
     }
