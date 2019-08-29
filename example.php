@@ -199,7 +199,7 @@ $byer = new orangedata\orangedata_client($inn, $api_url, $sign_pkey, $ssl_client
 
 try {
     //create client new order, add positions , add payment, send request
-    $byer->create_order('23423423434', 1, 'example@example.com', 1)
+    $byer->create_order('23423423434', 1, 'example@example.com', 1, 'main', '0123456789')
           ->add_position_to_order(6.123456, '10.', 1, 'matches', 1, 10)
           ->add_position_to_order(7, 10, 1, 'matches2', null, 10)
           ->add_position_to_order(345., 10.76, 1, 'matches3', 3, null)
