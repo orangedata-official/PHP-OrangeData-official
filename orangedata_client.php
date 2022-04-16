@@ -114,6 +114,7 @@ class orangedata_client {
     $taxationSystem = $params['taxationSystem'];
     $group = $params['group'];
     $key = $params['key'];
+    $ignoreItemCodeCheck = $params['ignoreItemCodeCheck'];
     $errors = array();
 
     if (!$id || strlen($id) > self::MAX_ID_LENGTH) array_push($errors, 'id - ' . ($id ? 'maxLength is ' . self::MAX_ID_LENGTH : 'is required'));
@@ -132,6 +133,7 @@ class orangedata_client {
     $this->order_request->inn = $this->inn;
     $this->order_request->group = $group ?: 'Main';
     $this->order_request->key = $key;
+    $this->order_request->ignoreItemCodeCheck = $ignoreItemCodeCheck;
     $this->order_request->content = new \stdClass();
     $this->order_request->content->ffdVersion = $ffdVersion;
     $this->order_request->content->type = $type;
@@ -333,57 +335,61 @@ class orangedata_client {
    *  @return class $this
    *  @throws Exception
    */
-  public function add_agent_to_order(array $params = []) {
-    $agentType = $params['agentType'];
-    $paymentTransferOperatorPhoneNumbers = $params['paymentTransferOperatorPhoneNumbers'];
-    $paymentAgentOperation = $params['paymentAgentOperation'];
-    $paymentAgentPhoneNumbers = $params['paymentAgentPhoneNumbers'];
-    $paymentOperatorPhoneNumbers = $params['paymentOperatorPhoneNumbers'];
-    $paymentOperatorName = $params['paymentOperatorName'];
-    $paymentOperatorAddress = $params['paymentOperatorAddress'];
-    $paymentOperatorINN = $params['paymentOperatorINN'];
-    $supplierPhoneNumbers = $params['supplierPhoneNumbers'];
+    public function add_agent_to_order(array $params = [])
+    {
+        $errors = array();
+        if ($this->order_request->content->ffdVersion === self::FFD_VERSION_12)
+            array_push($errors, 'add_agent_to_order not supported by FFD1.2');
 
-    $errors = array();
+        $agentType = $params['agentType'];
+        $paymentTransferOperatorPhoneNumbers = $params['paymentTransferOperatorPhoneNumbers'];
+        $paymentAgentOperation = $params['paymentAgentOperation'];
+        $paymentAgentPhoneNumbers = $params['paymentAgentPhoneNumbers'];
+        $paymentOperatorPhoneNumbers = $params['paymentOperatorPhoneNumbers'];
+        $paymentOperatorName = $params['paymentOperatorName'];
+        $paymentOperatorAddress = $params['paymentOperatorAddress'];
+        $paymentOperatorINN = $params['paymentOperatorINN'];
+        $supplierPhoneNumbers = $params['supplierPhoneNumbers'];
 
-    if ($agentType < 1 || $agentType > 127) array_push($errors, 'agentType - invalid value');
-    for ($i = 0; $i < count($paymentTransferOperatorPhoneNumbers); $i++) {
-        if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $paymentTransferOperatorPhoneNumbers[$i]))
-            array_push($errors, 'paymentTransferOperatorPhoneNumbers[' . $i . '] - invalid phone');
+
+        if ($agentType < 1 || $agentType > 127) array_push($errors, 'agentType - invalid value');
+        for ($i = 0; $i < count($paymentTransferOperatorPhoneNumbers); $i++) {
+            if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $paymentTransferOperatorPhoneNumbers[$i]))
+                array_push($errors, 'paymentTransferOperatorPhoneNumbers[' . $i . '] - invalid phone');
+        }
+        if (mb_strlen($paymentAgentOperation) > self::MAX_PAYMENT_AGENT_OPERATION_LENGTH) array_push($errors, 'paymentAgentOperation - maxLength is ' . self::MAX_PAYMENT_AGENT_OPERATION_LENGTH);
+        for ($i = 0; $i < count($paymentAgentPhoneNumbers); $i++) {
+            if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $paymentAgentPhoneNumbers[$i]))
+                array_push($errors, 'paymentAgentPhoneNumbers[' . $i . '] - invalid phone');
+        }
+        for ($i = 0; $i < count($paymentOperatorPhoneNumbers); $i++) {
+            if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $paymentOperatorPhoneNumbers[$i]))
+                array_push($errors, 'paymentOperatorPhoneNumbers[' . $i . '] - invalid phone');
+        }
+        if (mb_strlen($paymentOperatorName) > self::MAX_PAYMENT_OPERATOR_NAME_LENGTH) array_push($errors, 'paymentOperatorName - maxLength is ' . self::MAX_PAYMENT_OPERATOR_NAME_LENGTH);
+        if (mb_strlen($paymentOperatorAddress) > self::MAX_PAYMENT_OPERATOR_ADDRESS_LENGTH) array_push($errors, 'paymentOperatorAddress - maxLength is ' . self::MAX_PAYMENT_OPERATOR_ADDRESS_LENGTH);
+        if ($paymentOperatorINN && strlen($paymentOperatorINN) !== 10 && strlen($paymentOperatorINN) !== 12) array_push($errors, 'paymentOperatorINN - length need to be 10 or 12');
+
+        for ($i = 0; $i < count($supplierPhoneNumbers); $i++) {
+            if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $supplierPhoneNumbers[$i]))
+                array_push($errors, 'supplierPhoneNumbers[' . $i . '] - invalid phone');
+        }
+
+        if (count($errors) > 0) throw new Exception(implode(', ', $errors) . PHP_EOL);
+
+
+        if ($agentType) $this->order_request->content->agentType = $agentType;
+        if ($paymentTransferOperatorPhoneNumbers) $this->order_request->content->paymentTransferOperatorPhoneNumbers = $paymentTransferOperatorPhoneNumbers;
+        if ($paymentAgentOperation) $this->order_request->content->paymentAgentOperation = $paymentAgentOperation;
+        if ($paymentAgentPhoneNumbers) $this->order_request->content->paymentAgentPhoneNumbers = $paymentAgentPhoneNumbers;
+        if ($paymentOperatorPhoneNumbers) $this->order_request->content->paymentOperatorPhoneNumbers = $paymentOperatorPhoneNumbers;
+        if ($paymentOperatorName) $this->order_request->content->paymentOperatorName = $paymentOperatorName;
+        if ($paymentOperatorAddress) $this->order_request->content->paymentOperatorAddress = $paymentOperatorAddress;
+        if ($paymentOperatorINN) $this->order_request->content->paymentOperatorINN = $paymentOperatorINN;
+        if ($supplierPhoneNumbers) $this->order_request->content->supplierPhoneNumbers = $supplierPhoneNumbers;
+
+        return $this;
     }
-    if (mb_strlen($paymentAgentOperation) > self::MAX_PAYMENT_AGENT_OPERATION_LENGTH) array_push($errors, 'paymentAgentOperation - maxLength is ' . self::MAX_PAYMENT_AGENT_OPERATION_LENGTH);
-    for ($i = 0; $i < count($paymentAgentPhoneNumbers); $i++) {
-        if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $paymentAgentPhoneNumbers[$i]))
-            array_push($errors, 'paymentAgentPhoneNumbers[' . $i . '] - invalid phone');
-    }
-    for ($i = 0; $i < count($paymentOperatorPhoneNumbers); $i++) {
-        if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $paymentOperatorPhoneNumbers[$i]))
-            array_push($errors, 'paymentOperatorPhoneNumbers[' . $i . '] - invalid phone');
-    }
-    if (mb_strlen($paymentOperatorName) > self::MAX_PAYMENT_OPERATOR_NAME_LENGTH) array_push($errors, 'paymentOperatorName - maxLength is ' . self::MAX_PAYMENT_OPERATOR_NAME_LENGTH);
-    if (mb_strlen($paymentOperatorAddress) > self::MAX_PAYMENT_OPERATOR_ADDRESS_LENGTH) array_push($errors, 'paymentOperatorAddress - maxLength is ' . self::MAX_PAYMENT_OPERATOR_ADDRESS_LENGTH);
-    if ($paymentOperatorINN && strlen($paymentOperatorINN) !== 10 && strlen($paymentOperatorINN) !== 12) array_push($errors, 'paymentOperatorINN - length need to be 10 or 12');
-
-    for ($i = 0; $i < count($supplierPhoneNumbers); $i++) {
-        if (!preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $supplierPhoneNumbers[$i]))
-            array_push($errors, 'supplierPhoneNumbers[' . $i . '] - invalid phone');
-    }
-
-    if (count($errors) > 0) throw new Exception(implode(', ', $errors) . PHP_EOL);
-
-
-    if ($agentType) $this->order_request->content->agentType = $agentType;
-    if ($paymentTransferOperatorPhoneNumbers) $this->order_request->content->paymentTransferOperatorPhoneNumbers = $paymentTransferOperatorPhoneNumbers;
-    if ($paymentAgentOperation) $this->order_request->content->paymentAgentOperation = $paymentAgentOperation;
-    if ($paymentAgentPhoneNumbers) $this->order_request->content->paymentAgentPhoneNumbers = $paymentAgentPhoneNumbers;
-    if ($paymentOperatorPhoneNumbers) $this->order_request->content->paymentOperatorPhoneNumbers = $paymentOperatorPhoneNumbers;
-    if ($paymentOperatorName) $this->order_request->content->paymentOperatorName = $paymentOperatorName;
-    if ($paymentOperatorAddress) $this->order_request->content->paymentOperatorAddress = $paymentOperatorAddress;
-    if ($paymentOperatorINN) $this->order_request->content->paymentOperatorINN = $paymentOperatorINN;
-    if ($supplierPhoneNumbers) $this->order_request->content->supplierPhoneNumbers = $supplierPhoneNumbers;
-
-    return $this;
-  }
 
   /**
    *  Добавление дополнительного реквизита пользователя, 1084
@@ -691,6 +697,7 @@ class orangedata_client {
     $id = $params['id'];
     $key = $params['key'];
     $group = $params['group'];
+    $ignoreItemCodeCheck = $params['ignoreItemCodeCheck'];
     $correctionType = $params['correctionType'];
     $type = $params['type'];
     $description = $params['description'];
@@ -741,6 +748,7 @@ class orangedata_client {
     $this->correction_request->inn = $this->inn;
     $this->correction_request->group = $group ?: 'Main';
     $this->correction_request->key = $key;
+    $this->correction_request->ignoreItemCodeCheck = $ignoreItemCodeCheck;
     $this->correction_request->content = new \stdClass();
     $this->correction_request->content->correctionType = (int) $correctionType;
     $this->correction_request->content->type = (int) $type;
@@ -913,9 +921,14 @@ class orangedata_client {
      *  @throws Exception
      */
     public function create_correction12(array $params = []) {
+        $errors = array();
+        if (!isset($params['ffdVersion']))
+            array_push($errors, 'create_correction12 supports only FFD1.2');
+
         $id = $params['id'];
         $group = $params['group'];
         $key = $params['key'];
+        $ignoreItemCodeCheck = $params['ignoreItemCodeCheck'];
         $correctionType = $params['correctionType'];
         $type = $params['type'];
         $customerContact = $params['customerContact'];
@@ -928,8 +941,6 @@ class orangedata_client {
         $vat4Sum = $params['vat4Sum'];
         $vat5Sum = $params['vat5Sum'];
         $vat6Sum = $params['vat6Sum'];
-
-        $errors = array();
 
         if (!$id || strlen($id) > self::MAX_ID_LENGTH) array_push($errors, 'id - ' . ($id ? 'maxLength is ' . self::MAX_ID_LENGTH : 'is required'));
         if (!$this->inn || (strlen($this->inn ) !== 10 && strlen($this->inn ) !== 12)) array_push($errors, 'inn - ' . ($this->inn ? 'length need to be 10 or 12' : 'is required'));
@@ -953,7 +964,8 @@ class orangedata_client {
         $this->correction_request->id = (string) $id;
         $this->correction_request->inn = $this->inn;
         $this->correction_request->key = $key;
-        $this->correction_request->group = $group ?: 'Main';
+        $this->correction_request->ignoreItemCodeCheck = $ignoreItemCodeCheck;
+        $this->correction_request->group = $group ?: 'Main_2';
         $this->correction_request->content = new \stdClass();
         $this->correction_request->content->ffdVersion = self::FFD_VERSION_12;
         $this->correction_request->content->correctionType = (int) $correctionType;
@@ -979,6 +991,8 @@ class orangedata_client {
      */
     public function add_position_to_correction(array $params = []) {
         $errors = array();
+        if (!isset( $this->correction_request->content->ffdVersion))
+            array_push($errors, 'add_position_to_correction supports only FFD1.2');
         $quantity = $params['quantity'];
         $price = $params['price'];
         $tax = $params['tax'];
@@ -1126,6 +1140,9 @@ class orangedata_client {
         $amount = $params['amount'];
         $errors = array();
 
+        if (!isset( $this->correction_request->content->ffdVersion))
+            array_push($errors, 'add_position_to_correction supports only FFD1.2');
+
         if (!preg_match('/^[1-9]{1}$|^1[0-6]{1}$/', $type)) array_push($errors, 'payments.type - ' . ($type ? 'invalid value "' . $type . '"' : 'is required'));
         if (!is_numeric($amount)) array_push($errors, 'payments.amount - ' . ($amount ? 'invalid value "' . $amount . '"' : 'is required'));
 
@@ -1147,6 +1164,9 @@ class orangedata_client {
      */
     public function add_additional_attributes_to_correction(array $params = []) {
         $errors = array();
+        if (!isset( $this->correction_request->content->ffdVersion))
+            array_push($errors, 'add_position_to_correction supports only FFD1.2');
+
         $additionalAttribute = $params['additionalAttribute'];
 
         $customerInfo = $params['customerInfo'];
