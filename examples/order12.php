@@ -2,15 +2,17 @@
 
 include_once '/../orangedata_client.php'; // path to orangedata_client.php
 
+$buyer = null;
+
 try {
   $client = [
-    'inn' => '0123456789',
+    'inn' => '7725327863',
     'api_url' => '2443',
     // 'api_url' => 'https://apip.orangedata.ru:2443', // link access
-    'sign_pkey' => dirname(__DIR__) . '/secure_path/private_key.pem',
-    'ssl_client_key' => dirname(__DIR__) . '/secure_path/client.key',
-    'ssl_client_crt' => dirname(__DIR__) . '/secure_path/client.crt',
-    'ssl_ca_cert' => dirname(__DIR__) . '/secure_path/cacert.pem',
+    'sign_pkey' => dirname(__DIR__) . '/examples/secure_path/private_key.pem',
+    'ssl_client_key' => dirname(__DIR__) . '/examples/secure_path/client.key',
+    'ssl_client_crt' => dirname(__DIR__) . '/examples/secure_path/client.crt',
+    'ssl_ca_cert' => dirname(__DIR__) . '/examples/secure_path/cacert.pem',
     'ssl_client_crt_pass' => 1234,
   ];
 
@@ -20,7 +22,7 @@ try {
 
   $order = [
       'ffdVersion' => 4,
-      'id' => '23423423434',
+      'id' => '1238',
       'type' => 1,
       'customerContact' => 'example@example.com',
       'taxationSystem' => 1,
@@ -29,8 +31,8 @@ try {
   ];
 
   $position = [
-      'quantity' => '1',
-      'price' => 1,
+      'quantity' => '2',
+      'price' => 1.44,
       'tax' => 1,
       'text' => 'some text',
       'paymentMethodType' => 4,
@@ -79,7 +81,7 @@ try {
 
   $payment = [
     'type' => 16,
-    'amount' => 131.23,
+    'amount' => 2.88,
   ];
 
   $userAttribute = [
@@ -91,7 +93,7 @@ try {
     'additionalAttribute' => 'Attribute',
       "customerInfo" =>[
           "name"=> "Кузнецов Иван Петрович",
-          "inn"=> "7705327863",
+          "inn"=> "828021964975",
           "birthDate"=> "15.09.1988",
           "citizenship"=> "643",
           "identityDocumentCode"=> "01",
@@ -112,20 +114,18 @@ try {
         ->add_payment_to_order($payment)
         ->add_user_attribute($userAttribute)
         ->add_additional_attributes($additional)
-        ->add_vending_to_order($vending);
+        //->add_vending_to_order($vending)
+  ;
 
   $result = $buyer->send_order(); // Send order
   var_dump($result); // View response
+
+  /** View status of order **/
+  echo "Order status:" . PHP_EOL;
+  $order_status = $buyer->get_order_status(1238);
+  var_dump($order_status);
+
 } catch (Exception $ex) {
   echo 'Errors:' . PHP_EOL . $ex->getMessage();
 }
 
-/** View status of order **/
-try {
-  $order_status = $buyer->get_order_status(23423423434);
-  var_dump($order_status);
-} catch (Exception $ex) {
-  echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
-}
-
-?>
