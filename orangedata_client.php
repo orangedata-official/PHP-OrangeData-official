@@ -1273,4 +1273,42 @@ class orangedata_client {
         return $return;
     }
 
+    /**
+     * get_correction_status12(a) - Проверка состояния чека-коррекции
+     *  @param $id (a) - Идентификатор документа (Строка от 1 до 32 символов)
+     *  @return bool
+     *  @throws Exception
+     */
+    public function get_correction_status12($id) {
+        if (strlen($id) > 32 OR strlen($id) == 0) {
+            throw new Exception('Invalid order identifier');
+        }
+        $curl = is_numeric($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url,false) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/correction12/' . $this->inn . '/status/' . $id);
+        curl_setopt($curl, CURLOPT_POST, false);
+        $answer = curl_exec($curl);
+        $info = curl_getinfo($curl);
+        switch ($info['http_code']) {
+            case '200':
+                $return = $answer;
+                break;
+            case '202':
+                $return = true;
+                break;
+            case '400':
+                throw new Exception('Not Found. Order was not found in the system. Company not found.');
+            case '401':
+                throw new Exception('Unauthorized. Client certificate check is failed');
+            case '404':
+                throw new Exception('Endpoint not found');
+            default:
+                $return = false;
+                break;
+        }
+        if (false === $return) {
+            throw new Exception('Curl error: ' . curl_error($curl));
+        }
+        return $return;
+    }
+
+
 }
