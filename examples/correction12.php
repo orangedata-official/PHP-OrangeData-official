@@ -4,9 +4,9 @@ include_once '../orangedata_client.php'; // path to orangedata_client.php
 
 try {
   $client = [
-    'inn' => '0123456789',
-    'api_url' => '2443',
-    // 'api_url' => 'https://apip.orangedata.ru:2443', // link access
+    'inn' => '7725327863',
+//    'api_url' => '2443',
+     'api_url' => 'https://apip.orangedata.ru:2443', // link access
     'sign_pkey' => dirname(__DIR__) . '/secure_path/private_key.pem',
     'ssl_client_key' => dirname(__DIR__) . '/secure_path/client.key',
     'ssl_client_crt' => dirname(__DIR__) . '/secure_path/client.crt',
@@ -90,7 +90,7 @@ try {
 
 /** View status of correction **/
 try {
-  $cor_status = $buyer->get_correction_status('23423423');
+  $cor_status = $buyer->get_correction_status12('23423423');
   var_dump($cor_status);
 } catch (Exception $ex) {
   echo 'Ошибка:' . PHP_EOL . $ex->getMessage();
