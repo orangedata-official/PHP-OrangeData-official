@@ -27,8 +27,8 @@ try {
       'type' => 1,
       'group' => 'main_2',
       'causeDocumentDate' => new \DateTime(),
-      'causeDocumentNumber' => '56ce',
-      'totalSum' => 0,
+      'causeDocumentNumber' => '56',
+      'totalSum' => 1,
       'customerContact' => 'liza@ya.ru',
       'vat1Sum' => 0,
       'vat2Sum' => 0,
@@ -78,7 +78,8 @@ try {
       ->add_position_to_correction($correctionPos)
       ->add_payment_to_correction($correctionPayment)
       ->add_additional_attributes_to_correction($additional)
-      ->add_vending_to_correction($correctionVending);
+//      ->add_vending_to_correction($correctionVending)
+  ;
 
 
   $result = $buyer->post_correction12(); // Send correction
