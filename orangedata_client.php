@@ -1295,7 +1295,9 @@ class orangedata_client {
                 $return = true;
                 break;
             case '400':
-                throw new Exception('Not Found. Order was not found in the system. Company not found.');
+                $return = $answer;
+                //throw new Exception('Not Found. Order was not found in the system. Company not found.');
+                break;
             case '401':
                 throw new Exception('Unauthorized. Client certificate check is failed');
             case '404':
