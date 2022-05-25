@@ -24,7 +24,7 @@ try {
     'customerContact' => 'example@example.com',
     'taxationSystem' => 1,
     'key' => '1234567',
-    'group' => 'Main',
+    'group' => null,
   ];
 
   $position = [
