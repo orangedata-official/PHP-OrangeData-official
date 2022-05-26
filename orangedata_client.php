@@ -78,7 +78,7 @@ class orangedata_client {
     $type = $params['type'];
     $customerContact = $params['customerContact'];
     $taxationSystem = $params['taxationSystem'];
-    $group = $params['group'];
+    $group = $params['group'] ?? false;
     $key = $params['key'];
     $errors = array();
 
@@ -121,16 +121,16 @@ class orangedata_client {
     $text = $params['text'];
     $paymentMethodType = $params['paymentMethodType'];
     $paymentSubjectType = $params['paymentSubjectType'];
-    $nomenclatureCode = $params['nomenclatureCode'];
-    $supplierInfo = $params['supplierInfo'];
-    $supplierINN = $params['supplierINN'];
-    $agentType = $params['agentType'];
-    $agentInfo = $params['agentInfo'];
-    $unitOfMeasurement = $params['unitOfMeasurement'];
-    $additionalAttribute = $params['additionalAttribute'];
-    $manufacturerCountryCode = $params['manufacturerCountryCode'];
-    $customsDeclarationNumber = $params['customsDeclarationNumber'];
-    $excise = $params['excise'];
+    $nomenclatureCode = $params['nomenclatureCode'] ?? false;
+    $supplierInfo = $params['supplierInfo'] ?? false;
+    $supplierINN = $params['supplierINN'] ?? false;
+    $agentType = $params['agentType'] ?? false;
+    $agentInfo = $params['agentInfo'] ?? false;
+    $unitOfMeasurement = $params['unitOfMeasurement'] ?? false;
+    $additionalAttribute = $params['additionalAttribute'] ?? false;
+    $manufacturerCountryCode = $params['manufacturerCountryCode'] ?? false;
+    $customsDeclarationNumber = $params['customsDeclarationNumber'] ?? false;
+    $excise = $params['excise'] ?? false;
 
     $errors = array();
 
@@ -179,7 +179,7 @@ class orangedata_client {
     if ($additionalAttribute && mb_strlen($additionalAttribute) > self::MAX_POSITION_ADDITIONAL_ATTRIBUTE_LENGTH) array_push($errors, 'position.additionalAttribute - maxLength is ' . self::MAX_POSITION_ADDITIONAL_ATTRIBUTE_LENGTH);
     if ($manufacturerCountryCode && strlen($manufacturerCountryCode) > self::MAX_POSITION_MANUFACTURE_COUNTRY_CODE_LENGTH) array_push($errors, 'position.manufacturerCountryCode - maxLength is ' . self::MAX_POSITION_MANUFACTURE_COUNTRY_CODE_LENGTH);
     if ($customsDeclarationNumber && mb_strlen($customsDeclarationNumber) > self::MAX_POSITION_CUSTOMS_DECLARATION_NUMBER) array_push($errors, 'position.additionalAttribute - maxLength is ' . self::MAX_POSITION_CUSTOMS_DECLARATION_NUMBER);
-    if (!is_numeric($excise)) array_push($errors, 'position.excise - ' . ($excise ? 'invalid value "' . $excise . '"' : 'is required'));
+    if ($excise !== false && !is_numeric($excise)) array_push($errors, 'position.excise - ' . ($excise ? 'invalid value "' . $excise . '"' : 'is required'));
 
     if (count($errors) > 0) throw new Exception(implode(', ', $errors) . PHP_EOL);
 
