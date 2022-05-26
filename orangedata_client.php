@@ -419,7 +419,7 @@ class orangedata_client {
     if (strlen($id) > 32 OR strlen($id) == 0) {
       throw new Exception('Invalid order identifier');
     }
-    $curl = is_int($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url, TRUE) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/documents/' . $this->inn . '/status/' . $id);
+    $curl = is_numeric($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url, TRUE) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/documents/' . $this->inn . '/status/' . $id);
     curl_setopt($curl, CURLOPT_POST, false);
     $answer = curl_exec($curl);
     $info = curl_getinfo($curl);
