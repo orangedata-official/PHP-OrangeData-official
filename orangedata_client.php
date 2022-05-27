@@ -382,13 +382,20 @@ class orangedata_client {
       CURLOPT_POSTFIELDS => $jsonstring
     ));
     $answer = curl_exec($curl);
+    if (curl_errno($curl)) {
+      throw new Exception('Curl error: '
+        . curl_errno($curl)
+        . ' (' . curl_strerror(curl_errno($curl)) . ') '
+        . curl_error($curl)
+      );
+    }
     $info = curl_getinfo($curl);
     switch ($info['http_code']) {
       case '201':
-        $return = true;
+        return true;
         break;
       case '400':
-        $return = $answer;
+        return $answer;
         break;
       case '401':
         throw new Exception('Unauthorized. Client certificate check is failed');
@@ -397,16 +404,12 @@ class orangedata_client {
         throw new Exception('Conflict. Order with same id is already exists in the system.');
         break;
       case '503':
-        $return = $answer;
+        return $answer;
         break;
       default:
-        $return = false;
+        throw new Exception('Server returned HTTP code ' . $info['http_code']);
         break;
     }
-    if (FALSE === $return) {
-      throw new Exception('Curl error: ' . curl_error($curl));
-    }
-    return $return;
   }
 
   /**
@@ -422,13 +425,20 @@ class orangedata_client {
     $curl = is_int($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url, TRUE) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/documents/' . $this->inn . '/status/' . $id);
     curl_setopt($curl, CURLOPT_POST, false);
     $answer = curl_exec($curl);
+    if (curl_errno($curl)) {
+      throw new Exception('Curl error: ' 
+        . curl_errno($curl)
+        . ' (' . curl_strerror(curl_errno($curl)) . ') '
+        . curl_error($curl)
+      );
+    }
     $info = curl_getinfo($curl);
     switch ($info['http_code']) {
       case '200':
-        $return = $answer;
+        return $answer;
         break;
       case '202':
-        $return = TRUE;
+        return true;
         break;
       case '400':
         throw new Exception('Not Found. Order was not found in the system.');
@@ -437,13 +447,9 @@ class orangedata_client {
         throw new Exception('Unauthorized. Client certificate check is failed');
         break;
       default:
-        $return = false;
+        throw new Exception('Server returned HTTP code ' . $info['http_code']);
         break;
     }
-    if (FALSE === $return) {
-      throw new Exception('Curl error: ' . curl_error($curl));
-    }
-    return $return;
   }
 
   private function sign_order_request($jsonstring) {
