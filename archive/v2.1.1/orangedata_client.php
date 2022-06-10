@@ -312,12 +312,12 @@ class orangedata_client {
 
     /**
      * get_order_status(a) - Проверка состояния чека
-     *  @param string $id (a) - Идентификатор документа (Строка от 1 до 32 символов)
+     *  @param string $id (a) - Идентификатор документа (Строка от 1 до 64 символов)
      *  @return mixed
      *  @throws Exception
      */
     public function get_order_status($id) {
-        if (strlen($id) > 32 OR strlen($id) == 0) {
+        if (strlen($id) > 64 OR strlen($id) == 0) {
             throw new Exception('Invalid order identifier');
         }
         $curl = is_int($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url, TRUE) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/documents/' . $this->inn . '/status/' . $id);
@@ -528,12 +528,12 @@ class orangedata_client {
 
     /**
      * get_correction_status(a) - Проверка состояния чека-коррекции
-     *  @param $id (a) - Идентификатор документа (Строка от 1 до 32 символов)
+     *  @param $id (a) - Идентификатор документа (Строка от 1 до 64 символов)
      *  @return bool|mixed
      *  @throws Exception
      */
     public function get_correction_status($id) {
-        if (strlen($id) > 32 OR strlen($id) == 0) {
+        if (strlen($id) > 64 OR strlen($id) == 0) {
             throw new Exception('Invalid order identifier');
         }
         $curl = is_numeric($this->api_url) ? $this->prepare_curl($this->edit_url($this->api_url,FALSE) . $this->inn . '/status/' . $id) : $this->prepare_curl($this->api_url . '/api/v2/corrections/' . $this->inn . '/status/' . $id);
