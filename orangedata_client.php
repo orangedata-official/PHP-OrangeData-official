@@ -694,4 +694,11 @@ class orangedata_client {
     return $return;
   }
 
+  public function get_order() {
+    return $this->order_request;
+  }
+
+  public function get_correction() {
+    return $this->correction_request;
+  }
 }
