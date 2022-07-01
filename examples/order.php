@@ -24,6 +24,7 @@ try {
     'customerContact' => 'example@example.com',
     'taxationSystem' => 1,
     'key' => '1234567',
+    'group' => null,
   ];
 
   $position = [
@@ -47,7 +48,7 @@ try {
       'paymentOperatorPhoneNumbers' => ['+79266660011'],
       'paymentOperatorName' => 'OAO ATLANT',
       'paymentOperatorAddress' => 'Address',
-      'paymentOperatorInn' => 1234567890,
+      'paymentOperatorINN' => 1234567890,
     ],
     'unitOfMeasurement' => 'kg',
     'additionalAttribute' => 'attribute',
