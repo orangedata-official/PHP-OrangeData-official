@@ -80,16 +80,17 @@ class orangedata_client {
     $taxationSystem = $params['taxationSystem'];
     $group = $params['group'];
     $key = $params['key'];
+    $callbackUrl = $params['callbackUrl'] ?? false;
     $errors = array();
 
     if (!$id || strlen($id) > self::MAX_ID_LENGTH) array_push($errors, 'id - ' . ($id ? 'maxLength is ' . self::MAX_ID_LENGTH : 'is required'));
     if (!$this->inn || (strlen($this->inn ) !== 10 && strlen($this->inn ) !== 12)) array_push($errors, 'inn - ' . ($this->inn ? 'length need to be 10 or 12' : 'is required'));
     if ($group && strlen($group) > self::MAX_GROUP_LENGTH) array_push($errors, 'group - maxLength is ' . self::MAX_GROUP_LENGTH);
     if (!$key || strlen($key) > self::MAX_KEY_LENGTH) array_push($errors, 'key - ' . ($key ? 'maxLength is ' . self::MAX_KEY_LENGTH : 'is required'));
+    if ($callbackUrl && !filter_var($callbackUrl, FILTER_VALIDATE_URL)) array_push($errors, 'callbackUrl - invalid value');
     if (!is_int($type) && !preg_match('/^[1234]$/', $type)) array_push($errors, 'content.type - invalid value');
     if (!preg_match('/^[012345]$/', $taxationSystem)) array_push($errors, 'checkClose.taxationSystem - invalid value');
     if (!filter_var($customerContact, FILTER_VALIDATE_EMAIL) && !preg_match('/^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/', $customerContact)) array_push($errors, 'content.customerContact - invalid value');
-
     if (count($errors) > 0) throw new Exception(implode(', ', $errors) . PHP_EOL);
 
     $this->order_request = new \stdClass();
@@ -97,6 +98,7 @@ class orangedata_client {
     $this->order_request->inn = $this->inn;
     $this->order_request->group = $group ?: 'Main';
     $this->order_request->key = $key;
+    if ($callbackUrl) $this->order_request->callbackUrl = $callbackUrl;
     $this->order_request->content = new \stdClass();
     $this->order_request->content->type = $type;
     $this->order_request->content->positions = array();
